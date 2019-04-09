@@ -1,6 +1,4 @@
 """Settings for audio reactive LED strip"""
-from __future__ import print_function
-from __future__ import division
 import os
 
 UDP_IP = '192.168.0.150'
@@ -13,7 +11,7 @@ USE_GUI = True
 DISPLAY_FPS = True
 """Whether to display the FPS when running (can reduce performance)"""
 
-N_PIXELS = 60 
+N_PIXELS = 256
 """Number of pixels in the LED strip (must match ESP8266 firmware)"""
 
 MIC_RATE = 44100
@@ -25,15 +23,6 @@ FPS = 60
 FPS indicates the desired refresh rate, or frames-per-second, of the audio
 visualization. The actual refresh rate may be lower if the computer cannot keep
 up with desired FPS value.
-
-Higher framerates improve "responsiveness" and reduce the latency of the
-visualization but are more computationally expensive.
-
-Low framerates are less computationally expensive, but the visualization may
-appear "sluggish" or out of sync with the audio being played if it is too low.
-
-The FPS should not exceed the maximum refresh rate of the LED strip, which
-depends on how long the LED strip is.
 """
 _max_led_FPS = int(((N_PIXELS * 30e-6) + 50e-6)**-1.0)
 assert FPS <= _max_led_FPS, 'FPS must be <= {}'.format(_max_led_FPS)

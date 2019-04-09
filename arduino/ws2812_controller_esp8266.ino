@@ -13,8 +13,8 @@
 const uint8_t PixelPin = 3;  // make sure to set this to the correct pin
 
 // Wifi and socket settings
-const char* ssid     = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid     = "Schrödingers Wlan";
+const char* password = "13572468";
 unsigned int localPort = 7777;
 char packetBuffer[BUFFER_LEN];
 
@@ -45,6 +45,7 @@ void setup() {
     Serial.println(ssid);
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
+    
     port.begin(localPort);
     ledstrip.Begin();//Begin output
     ledstrip.Show();//Clear the strip for use
