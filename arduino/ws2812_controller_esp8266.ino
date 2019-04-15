@@ -13,8 +13,8 @@
 const uint8_t PixelPin = 3;  // make sure to set this to the correct pin
 
 // Wifi and socket settings
-const char* ssid     = "Schrödingers Wlan";
-const char* password = "13572468";
+const char* ssid     = "";
+const char* password = "";
 unsigned int localPort = 7777;
 char packetBuffer[BUFFER_LEN];
 

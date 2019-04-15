@@ -24,7 +24,7 @@ def update():
         g (0 to 255): Green value of LED
         b (0 to 255): Blue value of LED
     """
-    global pixels, _prev_pixels
+    global pixels
     # Truncate values and cast to integer
     pixels = np.clip(pixels, 0, 255).astype(int)
     p = np.copy(pixels)

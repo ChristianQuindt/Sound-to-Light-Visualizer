@@ -183,31 +183,31 @@ mel_smoothing = dsp.ExpFilter(np.tile(1e-1, config.N_FFT_BINS),
 volume = dsp.ExpFilter(config.MIN_VOLUME_THRESHOLD,
                        alpha_decay=0.02, alpha_rise=0.02)
 fft_window = np.hamming(int(config.MIC_RATE / config.FPS) * config.N_ROLLING_HISTORY)
-prev_fps_update = time.time()
+
 
 
 def microphone_update(audio_samples):
-    global y_roll, prev_rms, prev_exp, prev_fps_update
+    global samples_roll
     # Normalize samples between 0 and 1
-    y = audio_samples / 2.0**15
+    normalised_samples = audio_samples / 2.0**15
     # Construct a rolling window of audio samples
-    y_roll[:-1] = y_roll[1:]
-    y_roll[-1, :] = np.copy(y)
-    y_data = np.concatenate(y_roll, axis=0).astype(np.float32)
+    samples_roll[:-1] = samples_roll[1:]
+    samples_roll[-1, :] = np.copy(normalised_samples)
+    sample_data = np.concatenate(samples_roll, axis=0).astype(np.float32)
     
-    vol = np.max(np.abs(y_data))
+    vol = np.max(np.abs(sample_data))
     if vol < config.MIN_VOLUME_THRESHOLD:
         print('No audio input. Volume below threshold. Volume:', vol)
         led.pixels = np.tile(0, (3, config.N_PIXELS))
         led.update()
     else:
         # Transform audio input into the frequency domain
-        N = len(y_data)
+        N = len(sample_data)
         N_zeros = 2**int(np.ceil(np.log2(N))) - N
         # Pad with zeros until the next power of two
-        y_data *= fft_window
-        y_padded = np.pad(y_data, (0, N_zeros), mode='constant')
-        YS = np.abs(np.fft.rfft(y_padded)[:N // 2])
+        sample_data *= fft_window
+        sample_padded = np.pad(sample_data, (0, N_zeros), mode='constant')
+        YS = np.abs(np.fft.rfft(sample_padded)[:N // 2])
         # Construct a Mel filterbank from the FFT data
         mel = np.atleast_2d(YS).T * dsp.mel_y.T
         # Scale data to values more suitable for visualization
@@ -232,19 +232,19 @@ def microphone_update(audio_samples):
             b_curve.setData(y=led.pixels[2])
     if config.USE_GUI:
         app.processEvents()
-    
-    if config.DISPLAY_FPS:
-        fps = frames_per_second()
-        if time.time() - 0.5 > prev_fps_update:
-            prev_fps_update = time.time()
-            print('FPS {:.0f} / {:.0f}'.format(fps, config.FPS))
 
+def microphone_update_simplified(audio_samples):
+    # Normalize samples between 0 and 1
+    normalised_samples = audio_samples / 2.0**15
+    min = np.min(normalised_samples) *(-1)
+    for i in range(len(normalised_samples)):
+        normalised_samples[i] += min
 
 # Number of audio samples to read every time frame
 samples_per_frame = int(config.MIC_RATE / config.FPS)
 
 # Array containing the rolling audio sample window
-y_roll = np.random.rand(config.N_ROLLING_HISTORY, samples_per_frame) / 1e16
+samples_roll = np.random.rand(config.N_ROLLING_HISTORY, samples_per_frame) / 1e16
 
 visualization_effect = visualize_spectrum
 """Visualization effect to display on the LED strip"""
@@ -351,4 +351,4 @@ if __name__ == '__main__':
     # Initialize LEDs
     led.update()
     # Start listening to live audio stream
-    microphone.start_stream(microphone_update)
+    microphone.start_stream(microphone_update_simplified)
