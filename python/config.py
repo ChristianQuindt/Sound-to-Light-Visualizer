@@ -5,13 +5,13 @@ UDP_IP = '192.168.0.150'
 """IP address of the ESP8266. Must match IP in ws2812_controller.ino"""
 UDP_PORT = 7777
 """Port number used for socket communication between Python and ESP8266"""
-USE_GUI = True
+USE_GUI = False
 """Whether or not to display a PyQtGraph GUI plot of visualization"""
 
 DISPLAY_FPS = True
 """Whether to display the FPS when running (can reduce performance)"""
 
-N_PIXELS = 256
+N_PIXELS = 150
 """Number of pixels in the LED strip (must match ESP8266 firmware)"""
 
 MIC_RATE = 44100

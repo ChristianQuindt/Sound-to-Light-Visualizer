@@ -1,6 +1,7 @@
 import time
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter1d
+import scipy.interpolate as interp
 import config
 import microphone
 import dsp
@@ -203,7 +204,7 @@ def microphone_update(audio_samples):
     else:
         # Transform audio input into the frequency domain
         N = len(sample_data)
-        N_zeros = 2**int(np.ceil(np.log2(N))) - N
+        N_zeros = 2**int(np.ceil(np.log2(N))) - N # 2^11 - 1470
         # Pad with zeros until the next power of two
         sample_data *= fft_window
         sample_padded = np.pad(sample_data, (0, N_zeros), mode='constant')
@@ -211,7 +212,6 @@ def microphone_update(audio_samples):
         # Construct a Mel filterbank from the FFT data
         mel = np.atleast_2d(YS).T * dsp.mel_y.T
         # Scale data to values more suitable for visualization
-        # mel = np.sum(mel, axis=0)
         mel = np.sum(mel, axis=0)
         mel = mel**2.0
         # Gain normalization
@@ -219,7 +219,7 @@ def microphone_update(audio_samples):
         mel /= mel_gain.value
         mel = mel_smoothing.update(mel)
         # Map filterbank output onto LED strip
-        output = visualization_effect(mel)
+        output = visualization_effect(mel) 
         led.pixels = output
         led.update()
         if config.USE_GUI:
@@ -232,13 +232,69 @@ def microphone_update(audio_samples):
             b_curve.setData(y=led.pixels[2])
     if config.USE_GUI:
         app.processEvents()
+    microphone_update_simplified(audio_samples)
 
 def microphone_update_simplified(audio_samples):
+    global p, r, g, b
+    """min = np.min(audio_samples) *(-1)
+    for i in range(len(audio_samples)):
+        audio_samples[i] += min
+        audio_samples[i] /= 2"""
     # Normalize samples between 0 and 1
     normalised_samples = audio_samples / 2.0**15
-    min = np.min(normalised_samples) *(-1)
-    for i in range(len(normalised_samples)):
-        normalised_samples[i] += min
+    normalised_samples *= fft_window
+    fft_samples = np.abs(np.fft.rfft(normalised_samples))
+    i = np.argmax(fft_samples, 0)/len(fft_samples) * 653
+    print(np.argmax(fft_samples, 0))
+    if i < 40:
+        r = 255
+        g = 0
+        b = 0
+    elif i >= 40 and i <= 77:
+        r = 255
+        g = 0
+        b = (i - 40) * (255/37.0000)
+    elif i > 77 and i <= 205:
+        r = 255 - ((i - 78) * 2)
+        g = 0
+        b = 255
+    elif i >=206 and i <= 238:
+        r = 0
+        g = (i - 206) * (255/32.0000)
+        b = 255
+    elif i <=239 and i <= 250:
+        r = (i - 239) * (255/11.0000)
+        g = 255
+        b = 255
+    elif i >= 251 and i <=270:
+        r = 255
+        g = 255
+        b = 255
+    elif i >= 271 and i <= 398:
+        r = 255-((i-271)*2)
+        g = 255
+        b = 255-((i-271)*2)
+    elif i >= 398 and i <= 653:
+        r = 0
+        g = 255 - (i-398)
+        b = i-398
+    else:
+        r = 255
+        g = 0
+        b = 0
+    # Scrolling effect window
+    p[:, 1:] = p[:, :-1]
+    p *= 0.98
+    p = gaussian_filter1d(p, sigma=0.2)
+    # Create new color originating at the center
+    p[0, 0] = r 
+    p[1, 0] = g 
+    p[2, 0] = b
+    # Update the LED strip
+    led.pixels = np.concatenate((p[:, ::-1], p), axis=1)
+    led.update()
+    
+
 
 # Number of audio samples to read every time frame
 samples_per_frame = int(config.MIC_RATE / config.FPS)
@@ -246,7 +302,7 @@ samples_per_frame = int(config.MIC_RATE / config.FPS)
 # Array containing the rolling audio sample window
 samples_roll = np.random.rand(config.N_ROLLING_HISTORY, samples_per_frame) / 1e16
 
-visualization_effect = visualize_spectrum
+visualization_effect = visualize_scroll
 """Visualization effect to display on the LED strip"""
 
 
@@ -338,7 +394,7 @@ if __name__ == '__main__':
         energy_label.mousePressEvent = energy_click
         scroll_label.mousePressEvent = scroll_click
         spectrum_label.mousePressEvent = spectrum_click
-        energy_click(0)
+        scroll_click(0)
         # Layout
         layout.nextRow()
         layout.addItem(freq_label, colspan=3)

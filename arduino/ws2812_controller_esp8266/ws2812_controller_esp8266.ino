@@ -5,16 +5,16 @@
 #include <NeoPixelBus.h>
 
 // number of LEDs
-#define NUM_LEDS 60
+#define NUM_LEDS 150
 #define BUFFER_LEN 1024
 #define PRINT_FPS 1
 
 //NeoPixelBus settings
-const uint8_t PixelPin = 3;  // make sure to set this to the correct pin
+const uint8_t PixelPin = 9;  // make sure to set this to the correct pin
 
 // Wifi and socket settings
-const char* ssid     = "";
-const char* password = "";
+const char* ssid     = "Schrödingers Wlan";
+const char* password = "13572468";
 unsigned int localPort = 7777;
 char packetBuffer[BUFFER_LEN];
 
