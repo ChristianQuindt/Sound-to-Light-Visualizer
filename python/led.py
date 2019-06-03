@@ -28,11 +28,12 @@ def update():
     # Truncate values and cast to integer
     pixels = np.clip(pixels, 0, 255).astype(int)
     p = np.copy(pixels)
-    MAX_PIXELS_PER_PACKET = 126
+    MAX_PIXELS_PER_PACKET = 256
     # Pixel indices
     idx = []
     for i in range(config.N_PIXELS):
         idx.append(i)
+    
     n_packets = len(idx) // MAX_PIXELS_PER_PACKET + 1
     idx = np.array_split(idx, n_packets)
     for packet_indices in idx:
@@ -44,19 +45,3 @@ def update():
             m.append(p[2][i])  # Pixel blue value
         m = bytes(m)
         _sock.sendto(m, (config.UDP_IP, config.UDP_PORT))
-
-
-# Execute this file to run a LED strand test
-# If everything is working, you should see a red, green, and blue pixel scroll across the LED strip continously
-if __name__ == '__main__':
-    import time
-    # Turn all pixels off
-    pixels *= 0
-    pixels[0, 0] = 255  # Set 1st pixel red
-    pixels[1, 1] = 255  # Set 2nd pixel green
-    pixels[2, 2] = 255  # Set 3rd pixel blue
-    print('Starting LED strand test')
-    while True:
-        pixels = np.roll(pixels, 1, axis=1)
-        update()
-        time.sleep(.1)

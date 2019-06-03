@@ -7,7 +7,6 @@
 // number of LEDs
 #define NUM_LEDS 150
 #define BUFFER_LEN 1024
-#define PRINT_FPS 1
 
 //NeoPixelBus settings
 const uint8_t PixelPin = 9;  // make sure to set this to the correct pin
@@ -52,10 +51,6 @@ void setup() {
 }
 
 uint8_t N = 0;
-#if PRINT_FPS
-    uint16_t fpsCounter = 0;
-    uint32_t secondTimer = 0;
-#endif
 
 void loop() {
     int packetSize = port.parsePacket();
@@ -69,16 +64,5 @@ void loop() {
             ledstrip.SetPixelColor(N, pixel);
         } 
         ledstrip.Show();
-        #if PRINT_FPS
-            fpsCounter++;
-            Serial.print("/");
-        #endif
     }
-    #if PRINT_FPS
-        if (millis() - secondTimer >= 1000U) {
-            secondTimer = millis();
-            Serial.printf("FPS: %d\n", fpsCounter);
-            fpsCounter = 0;
-        }   
-    #endif
 }
